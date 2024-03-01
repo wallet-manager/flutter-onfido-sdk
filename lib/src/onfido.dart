@@ -10,21 +10,23 @@ class Onfido {
   /// - The [enterpriseFeatures] is a set of features for advanced customisation, get in touch to enable this for your account.
   /// - The [disableNFC] is a flag used to disable NFC (now enabled by default)
   /// - The [onfidoTheme] is an enum used to determine which theme the UI will be rendered with (DARK, LIGHT, AUTOMATIC)
-  Onfido(
-      {required String sdkToken,
-      String? iosLocalizationFileName,
-      IOSAppearance? iosAppearance,
-      EnterpriseFeatures? enterpriseFeatures,
-      bool? disableNFC,
-      OnfidoMediaCallback? mediaCallback,
-      OnfidoTheme? onfidoTheme})
-      : _sdkToken = sdkToken,
+  Onfido({
+    required String sdkToken,
+    String? iosLocalizationFileName,
+    IOSAppearance? iosAppearance,
+    EnterpriseFeatures? enterpriseFeatures,
+    bool? disableNFC,
+    OnfidoMediaCallback? mediaCallback,
+    OnfidoTheme? onfidoTheme,
+    String? locale,
+  })  : _sdkToken = sdkToken,
         _iOSLocalizationFileName = iosLocalizationFileName,
         _enterpriseFeatures = enterpriseFeatures,
         _iosAppearance = iosAppearance,
         _disableNFC = disableNFC,
         _mediaCallback = mediaCallback,
-        _onfidoTheme = onfidoTheme;
+        _onfidoTheme = onfidoTheme,
+        _locale = locale;
 
   final String _sdkToken;
   final String? _iOSLocalizationFileName;
@@ -33,6 +35,7 @@ class Onfido {
   final bool? _disableNFC;
   final OnfidoMediaCallback? _mediaCallback;
   final OnfidoTheme? _onfidoTheme;
+  final String? _locale;
 
   /// Start Onfido SDK using [FlowSteps].
   /// - The [flowSteps] allows you to configure which screens are going to be displayed in the flow. For more information see the [Start the Flow](https://github.com/onfido/flutter-sdk/#start-the-flow) section.
@@ -45,7 +48,8 @@ class Onfido {
         enterpriseFeatures: _enterpriseFeatures,
         disableNFC: _disableNFC,
         mediaCallback: _mediaCallback,
-        onfidoTheme: _onfidoTheme);
+        onfidoTheme: _onfidoTheme,
+        locale: _locale);
   }
 
   /// Start Onfido SDK using [Workflow].
@@ -57,6 +61,7 @@ class Onfido {
         mediaCallback: _mediaCallback,
         iosLocalizationFileName: _iOSLocalizationFileName,
         enterpriseFeatures: _enterpriseFeatures,
-        onfidoTheme: _onfidoTheme);
+        onfidoTheme: _onfidoTheme,
+        locale: _locale);
   }
 }

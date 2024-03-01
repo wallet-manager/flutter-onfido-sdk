@@ -10,7 +10,8 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   tearDown(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(channel, null);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, null);
   });
 
   group('start', () {
@@ -18,7 +19,8 @@ void main() {
       int callCounter = 0;
       MethodCall? receivedCall;
 
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(channel, (call) async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
         callCounter++;
         receivedCall = call;
         return startMockResponse;
@@ -37,8 +39,9 @@ void main() {
           flowSteps: FlowSteps(
             welcome: false,
             proofOfAddress: true,
-            documentCapture:
-                DocumentCapture(countryCode: CountryCode.UGA, documentType: DocumentType.nationalIdentityCard),
+            documentCapture: DocumentCapture(
+                countryCode: CountryCode.UGA,
+                documentType: DocumentType.nationalIdentityCard),
             faceCapture: FaceCapture.video(),
           ),
           disableNFC: false,
@@ -56,7 +59,8 @@ void main() {
       int callCounter = 0;
       MethodCall? receivedCall;
 
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(channel, (call) async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
         callCounter++;
         receivedCall = call;
         return startMockResponse;
@@ -64,11 +68,12 @@ void main() {
 
       final instance = MethodChannelOnfido();
       await instance.startWorkflow(
-          sdkToken: "sdkToken",
-          workflowRunId: "workflowRunId",
-          iosAppearance: mockIosAppearance(),
-          iosLocalizationFileName: "iosFileName",
-          onfidoTheme: null);
+        sdkToken: "sdkToken",
+        workflowRunId: "workflowRunId",
+        iosAppearance: mockIosAppearance(),
+        iosLocalizationFileName: "iosFileName",
+        onfidoTheme: null,
+      );
 
       expect(callCounter, 1);
       expect(receivedCall?.method, 'startStudio');
@@ -84,5 +89,6 @@ IOSAppearance mockIosAppearance() {
       fontRegular: 'avenir',
       supportDarkMode: false,
       fontBold: 'avenir-heavy',
-      backgroundColor: BackgroundColor(const Color.fromARGB(10, 20, 30, 10), const Color.fromARGB(30, 20, 10, 10)));
+      backgroundColor: BackgroundColor(const Color.fromARGB(10, 20, 30, 10),
+          const Color.fromARGB(30, 20, 10, 10)));
 }

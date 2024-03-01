@@ -18,24 +18,28 @@ class MethodChannelOnfido extends OnfidoPlatform {
   static OnfidoMediaCallback? _mediaCallback;
 
   @override
-  Future<List<OnfidoResult>> start(
-      {required String sdkToken,
-      required FlowSteps flowSteps,
-      String? iosLocalizationFileName,
-      IOSAppearance? iosAppearance,
-      OnfidoMediaCallback? mediaCallback,
-      EnterpriseFeatures? enterpriseFeatures,
-      bool? disableNFC,
-      OnfidoTheme? onfidoTheme}) async {
+  Future<List<OnfidoResult>> start({
+    required String sdkToken,
+    required FlowSteps flowSteps,
+    String? iosLocalizationFileName,
+    IOSAppearance? iosAppearance,
+    OnfidoMediaCallback? mediaCallback,
+    EnterpriseFeatures? enterpriseFeatures,
+    bool? disableNFC,
+    OnfidoTheme? onfidoTheme,
+    String? locale,
+  }) async {
     final arguments = StartOptionsSerializer.serialize(
-        sdkToken: sdkToken,
-        flowSteps: flowSteps,
-        iosAppearance: iosAppearance,
-        shouldUseMediaCallback: mediaCallback != null,
-        iosLocalizationFileName: iosLocalizationFileName,
-        enterpriseFeatures: enterpriseFeatures,
-        disableNFC: disableNFC,
-        onfidoTheme: onfidoTheme);
+      sdkToken: sdkToken,
+      flowSteps: flowSteps,
+      iosAppearance: iosAppearance,
+      shouldUseMediaCallback: mediaCallback != null,
+      iosLocalizationFileName: iosLocalizationFileName,
+      enterpriseFeatures: enterpriseFeatures,
+      disableNFC: disableNFC,
+      onfidoTheme: onfidoTheme,
+      locale: locale,
+    );
 
     _mediaCallback = mediaCallback;
 
@@ -44,22 +48,26 @@ class MethodChannelOnfido extends OnfidoPlatform {
   }
 
   @override
-  Future<void> startWorkflow(
-      {required String sdkToken,
-      required String workflowRunId,
-      IOSAppearance? iosAppearance,
-      OnfidoMediaCallback? mediaCallback,
-      String? iosLocalizationFileName,
-      EnterpriseFeatures? enterpriseFeatures,
-      OnfidoTheme? onfidoTheme}) async {
+  Future<void> startWorkflow({
+    required String sdkToken,
+    required String workflowRunId,
+    IOSAppearance? iosAppearance,
+    OnfidoMediaCallback? mediaCallback,
+    String? iosLocalizationFileName,
+    EnterpriseFeatures? enterpriseFeatures,
+    OnfidoTheme? onfidoTheme,
+    String? locale,
+  }) async {
     final arguments = StartStudioSerializer.serialize(
-        sdkToken: sdkToken,
-        workflowRunId: workflowRunId,
-        iosAppearance: iosAppearance,
-        shouldUseMediaCallback: mediaCallback != null,
-        iosLocalizationFileName: iosLocalizationFileName,
-        enterpriseFeatures: enterpriseFeatures,
-        onfidoTheme: onfidoTheme);
+      sdkToken: sdkToken,
+      workflowRunId: workflowRunId,
+      iosAppearance: iosAppearance,
+      shouldUseMediaCallback: mediaCallback != null,
+      iosLocalizationFileName: iosLocalizationFileName,
+      enterpriseFeatures: enterpriseFeatures,
+      onfidoTheme: onfidoTheme,
+      locale: locale,
+    );
 
     _mediaCallback = mediaCallback;
 
@@ -74,7 +82,8 @@ class MethodChannelOnfido extends OnfidoPlatform {
             if (kDebugMode) {
               print('onMediaCaptured call handler');
             }
-            final OnfidoMediaResult result = OnfidoMediaResultSerializer.deserialize(call.arguments);
+            final OnfidoMediaResult result =
+                OnfidoMediaResultSerializer.deserialize(call.arguments);
             _mediaCallback?.onMediaCaptured(result: result);
             break;
           }

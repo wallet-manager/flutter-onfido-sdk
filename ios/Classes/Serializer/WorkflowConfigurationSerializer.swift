@@ -7,6 +7,7 @@
 
 import Foundation
 import Onfido
+import UIKit
 
 extension WorkflowConfiguration {
     convenience init(from dictionary: NSDictionary) throws {
@@ -16,6 +17,10 @@ extension WorkflowConfiguration {
         else { throw NSError(domain: "Invalid serialization", code: 0) }
 
         self.init(workflowRunId: workflowRunId, sdkToken: token)
+        
+        if let locale = dictionary["locale"] as? String {
+            UserDefaults.standard.setValue([locale], forKey: "AppleLanguages")
+        }
 
         if let enterpriseFeatures = dictionary["enterpriseFeatures"] as? NSDictionary {
             withEnterpriseFeatures(EnterpriseFeatures.builder(with: enterpriseFeatures))

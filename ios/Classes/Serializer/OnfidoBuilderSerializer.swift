@@ -7,11 +7,16 @@
 
 import Foundation
 import Onfido
+import UIKit
 
 extension OnfidoConfig {
 /// convert the dictionary to actual iOS SDK APIs
     static func builder(with dictionary: NSDictionary, assetProvider: FlutterPluginRegistrar) throws -> OnfidoConfigBuilder {
         let onfidoBuilder = Self.builder()
+
+        if let locale = dictionary.value(forKey: "locale") as? String {
+            UserDefaults.standard.setValue([locale], forKey: "AppleLanguages")
+        }
 
         if let token = dictionary.value(forKey: "sdkToken") as? String {
             onfidoBuilder.withSDKToken(token)
