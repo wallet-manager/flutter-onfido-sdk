@@ -16,6 +16,8 @@ extension OnfidoConfig {
 
         if let locale = dictionary.value(forKey: "locale") as? String {
             UserDefaults.standard.setValue([locale], forKey: "AppleLanguages")
+            // UserDefaults.standard.set(locale, forKey: "i18n_language")
+            UserDefaults.standard.synchronize()
         }
 
         if let token = dictionary.value(forKey: "sdkToken") as? String {

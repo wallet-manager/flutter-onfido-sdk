@@ -20,6 +20,8 @@ extension WorkflowConfiguration {
         
         if let locale = dictionary["locale"] as? String {
             UserDefaults.standard.setValue([locale], forKey: "AppleLanguages")
+            // UserDefaults.standard.set(locale, forKey: "i18n_language")
+            UserDefaults.standard.synchronize()
         }
 
         if let enterpriseFeatures = dictionary["enterpriseFeatures"] as? NSDictionary {
