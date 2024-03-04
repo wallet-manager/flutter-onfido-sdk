@@ -19,16 +19,16 @@ internal fun Any?.deserializeOnfidoBuilder(
 
     val builder = OnfidoConfig.builder(context)
 
+    (this["locale"] as? String)?.let {
+        builder.withLocale(Locale(it))
+    }
+
     (this["sdkToken"] as? String)?.let {
         builder.withSDKToken(it)
     }
 
     val flowSteps = this["flowSteps"] as? Map<*, *>
         ?: throw Exception("Invalid arguments for start method (flow steps)")
-
-    if (flowSteps["locale"] != null) {
-        builder.withLocale(Locale(flowSteps["locale"] as String))
-    }
 
     val steps = mutableListOf<FlowStep>()
     if (flowSteps["welcome"] == true) {
