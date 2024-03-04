@@ -7,6 +7,9 @@ import com.onfido.sdk.flutter.helpers.CustomMediaCallback
 fun Any.deserializeWorkflowConfig(): WorkflowConfig {
     if (this !is Map<*, *>) throw Exception("Invalid arguments for start method")
 
+    val locale = this["locale"] as? String
+        ?: throw Exception("Invalid arguments for locale")
+
     val sdkToken = this["sdkToken"] as? String
         ?: throw Exception("Invalid arguments for start method (SDK token)")
 

@@ -9,6 +9,7 @@ import com.onfido.android.sdk.capture.ui.options.FlowStep
 import com.onfido.android.sdk.capture.ui.options.stepbuilder.DocumentCaptureStepBuilder
 import com.onfido.sdk.flutter.helpers.CustomMediaCallback
 import io.flutter.embedding.engine.plugins.FlutterPlugin
+import java.util.Locale
 
 internal fun Any?.deserializeOnfidoBuilder(
     context: Context,
@@ -17,6 +18,10 @@ internal fun Any?.deserializeOnfidoBuilder(
     if (this !is Map<*, *>) throw Exception("Invalid arguments for start method")
 
     val builder = OnfidoConfig.builder(context)
+
+    (this["locale"] as? String)?.let {
+        builder.withLocale(Locale(it))
+    }
 
     (this["sdkToken"] as? String)?.let {
         builder.withSDKToken(it)
