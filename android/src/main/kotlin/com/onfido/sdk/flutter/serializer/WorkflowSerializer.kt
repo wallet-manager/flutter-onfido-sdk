@@ -15,9 +15,12 @@ fun Any.deserializeWorkflowConfig(): WorkflowConfig {
 
     val builder = WorkflowConfig.Builder(sdkToken, workflowRunId)
 
-    val locale = this["locale"] as? String
-    if (locale != null) {
-        builder.withLocale(Locale(locale))
+    (this["locale"] as? String)?.let {
+        if(it == "zh-Hant") {
+            builder.withLocale(Locale.TRADITIONAL_CHINESE)
+        } else {
+            builder.withLocale(Locale(it))
+        }
     }
 
     val withMediaCallback = this["shouldUseMediaCallback"] as? Boolean ?: false

@@ -20,7 +20,11 @@ internal fun Any?.deserializeOnfidoBuilder(
     val builder = OnfidoConfig.builder(context)
 
     (this["locale"] as? String)?.let {
-        builder.withLocale(Locale(it))
+        if(it == "zh-Hant") {
+            builder.withLocale(Locale.TRADITIONAL_CHINESE)
+        } else {
+            builder.withLocale(Locale(it))
+        }
     }
 
     (this["sdkToken"] as? String)?.let {
