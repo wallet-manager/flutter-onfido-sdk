@@ -1,7 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:onfido_sdk/onfido_sdk.dart';
 
-/// convert dart code to dictionary to be passed to the paltform
+/// convert dart code to dictionary to be passed to the platform
 class StartStudioSerializer {
   static serialize({
     required String sdkToken,
@@ -9,6 +8,7 @@ class StartStudioSerializer {
     IOSAppearance? iosAppearance,
     String? iosLocalizationFileName,
     bool? shouldUseMediaCallback,
+    bool? shouldUseBiometricTokenCallback,
     EnterpriseFeatures? enterpriseFeatures,
     OnfidoTheme? onfidoTheme,
     String? locale,
@@ -19,9 +19,10 @@ class StartStudioSerializer {
       'iosAppearance': iosAppearance?.toJson(),
       'iosLocalizationFileName': iosLocalizationFileName,
       'shouldUseMediaCallback': shouldUseMediaCallback,
+      'shouldUseBiometricTokenCallback': shouldUseBiometricTokenCallback,
       'enterpriseFeatures': enterpriseFeatures?.toJson(),
-      'onfidoTheme': onfidoTheme == null ? null : describeEnum(onfidoTheme),
       'locale': locale,
+      'onfidoTheme': onfidoTheme?.name
     };
   }
 }

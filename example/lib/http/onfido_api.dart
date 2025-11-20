@@ -14,13 +14,21 @@ class OnfidoApi {
 
   final String _baseUrl = "https://api.onfido.com";
 
-  final _headers = {
-    "Authorization": "Token token=${dotenv.get("API_TOKEN")}",
-    "Accept": "application/json",
-    "Content-Type": "application/json"
-  };
+  String _apiToken = dotenv.get("API_TOKEN");
 
-  Future<String> getWorkflowRunId(String applicantId, String workflowId) async {
+  Future<void> setCustomApiToken(String customApiToken) async {
+    _apiToken = customApiToken;
+  }
+
+  Future<Map<String, String>> getHeaders() async {
+    return {
+      "Authorization": "Token token=$_apiToken",
+      "Accept": "application/json",
+      "Content-Type": "application/json"
+    };
+  }
+
+  Future<Workflow> getWorkflowRun(String applicantId, String workflowId) async {
     if (workflowId.isEmpty) {
       throw Exception('Missing workflow id, please check your .env file or enter it manually');
     }
@@ -29,10 +37,11 @@ class OnfidoApi {
       {"applicant_id": applicantId, "workflow_id": workflowId},
     );
 
-    final response = await http.post(Uri.parse("$_baseUrl/v3.5/workflow_runs"), headers: _headers, body: body);
+    final response =
+        await http.post(Uri.parse("$_baseUrl/v3.6/workflow_runs"), headers: await getHeaders(), body: body);
 
     if (response.statusCode == 201) {
-      return Workflow.fromJson(jsonDecode(response.body)).id!;
+      return Workflow.fromJson(jsonDecode(response.body));
     } else {
       throw Exception('Failed to create workflow run id');
     }
@@ -46,7 +55,7 @@ class OnfidoApi {
       "email": email
     });
 
-    final response = await http.post(Uri.parse("$_baseUrl/v3/applicants"), headers: _headers, body: body);
+    final response = await http.post(Uri.parse("$_baseUrl/v3/applicants"), headers: await getHeaders(), body: body);
 
     if (response.statusCode == 201) {
       return Applicant.fromJson(jsonDecode(response.body));
@@ -58,7 +67,7 @@ class OnfidoApi {
   Future<String> createSdkToken(String applicantId) async {
     final body = jsonEncode({"application_id": "com.onfido.onfidoFlutterExample", "applicant_id": applicantId});
 
-    final response = await http.post(Uri.parse("$_baseUrl/v3/sdk_token"), headers: _headers, body: body);
+    final response = await http.post(Uri.parse("$_baseUrl/v3/sdk_token"), headers: await getHeaders(), body: body);
 
     if (response.statusCode == 200) {
       return ApiToken.fromJson(jsonDecode(response.body)).token!;

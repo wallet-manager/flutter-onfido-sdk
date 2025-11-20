@@ -10,10 +10,10 @@ import com.onfido.android.sdk.capture.ui.options.stepbuilder.DocumentCaptureStep
 import com.onfido.sdk.flutter.helpers.CustomMediaCallback
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import java.util.Locale
+import com.onfido.android.sdk.capture.model.NFCOptions
 
 internal fun Any?.deserializeOnfidoBuilder(
-    context: Context,
-    assets: FlutterPlugin.FlutterAssets,
+    context: Context
 ): OnfidoConfig.Builder {
     if (this !is Map<*, *>) throw Exception("Invalid arguments for start method")
 
@@ -98,12 +98,14 @@ internal fun Any?.deserializeOnfidoBuilder(
 
     builder.withCustomFlow(steps.toTypedArray())
 
-    val enterpriseFeatures = this["enterpriseFeatures"] as? Map<*, *> ?: return builder
-    val features = EnterpriseFeatures.buildFromMap(enterpriseFeatures)
-    builder.withEnterpriseFeatures(features)
+    val enterpriseFeatures = this["enterpriseFeatures"] as? Map<*, *>
+    if (enterpriseFeatures != null) {
+        builder.withEnterpriseFeatures(EnterpriseFeatures.buildFromMap(enterpriseFeatures))
+    }
 
-    if (this["disableNFC"] as? Boolean == true) {
-        builder.disableNFC()
+    val nfcOption = this["nfcOption"] as? String
+    if (nfcOption != null) {
+        builder.withNFC(getNFCOption(nfcOption))
     }
 
     val withMediaCallback = this["shouldUseMediaCallback"] as? Boolean ?: false
@@ -146,20 +148,6 @@ private fun getMotionCaptureStepBuilder(
 
     (faceCapture["withAudio"] as? Boolean)?.let {
         motionCaptureStepBuilder.withAudio(it)
-    }
-
-    (faceCapture["withCaptureFallback"] as? Map<*, *>)?.let { captureFallback ->
-        (captureFallback["type"] as? String)?.let { type ->
-            when (type) {
-                "photo" -> motionCaptureStepBuilder.withCaptureFallback(
-                    getPhotoCaptureStepBuilder(faceStepBuilder, captureFallback)
-                )
-                "video" -> motionCaptureStepBuilder.withCaptureFallback(
-                    getVideoCaptureStepBuilder(faceStepBuilder, captureFallback)
-                )
-                else -> Unit// No fallback
-            }
-        }
     }
 
     return motionCaptureStepBuilder

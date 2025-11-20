@@ -1,22 +1,22 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_picker/picker.dart';
-import 'package:onfido_sdk/onfido_sdk.dart';
-
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:onfido_sdk/onfido_sdk.dart';
+import 'package:onfido_sdk_example/model/biometric_token_callback.dart';
 
 import 'components/alert_dialog.dart';
 import 'http/onfido_api.dart';
 import 'model/media_callback.dart';
 
-class OnfidoWorkflowSample extends StatefulWidget {
-  const OnfidoWorkflowSample({super.key});
+class OnfidoStudio extends StatefulWidget {
+  const OnfidoStudio({super.key});
 
   @override
-  State<OnfidoWorkflowSample> createState() => _OnfidoWorkflowState();
+  State<OnfidoStudio> createState() => _OnfidoStudioState();
 }
 
-class _OnfidoWorkflowState extends State<OnfidoWorkflowSample> {
+class _OnfidoStudioState extends State<OnfidoStudio> {
+  TextEditingController customApiTokenController = TextEditingController(text: "");
   TextEditingController firstNameController = TextEditingController(text: "first");
   TextEditingController lastNameController = TextEditingController(text: "last");
   TextEditingController emailController = TextEditingController(text: "email@email.com");
@@ -26,22 +26,34 @@ class _OnfidoWorkflowState extends State<OnfidoWorkflowSample> {
   bool withMediaCallback = false;
   bool disableMobileSDKAnalytics = false;
   OnfidoTheme onfidoTheme = OnfidoTheme.AUTOMATIC;
+  bool studioTokenEnabled = false;
+  bool withBiometricTokenCallback = false;
 
   startWorkflow() async {
     try {
+      if (customApiTokenController.text.isNotEmpty) {
+        OnfidoApi.instance.setCustomApiToken(customApiTokenController.text);
+      }
+
       final applicant = await OnfidoApi.instance.createApplicant(
         firstNameController.text,
         lastNameController.text,
         emailController.text,
       );
       final applicantId = applicant.id!;
-      final sdkToken = await OnfidoApi.instance.createSdkToken(applicantId);
-      final workflowRunId = await OnfidoApi.instance.getWorkflowRunId(applicantId, workflowIdController.text);
+      var sdkToken = await OnfidoApi.instance.createSdkToken(applicantId);
+      final workflowRun = await OnfidoApi.instance.getWorkflowRun(applicantId, workflowIdController.text);
+      final workflowRunId = workflowRun.id!;
+
+      if (studioTokenEnabled) {
+        sdkToken = workflowRun.studioToken!; // use studio token as sdk token
+      }
 
       final Onfido onfido = Onfido(
           sdkToken: sdkToken,
           iosLocalizationFileName: "onfido_ios_localisation",
           mediaCallback: withMediaCallback ? ExampleMediaCallback() : null,
+          biometricTokenCallback: withBiometricTokenCallback ? ExampleBiometricTokenCallback() : null,
           enterpriseFeatures: EnterpriseFeatures(
               hideOnfidoLogo: hideLogo,
               cobrandingText: coBrandTextController.text,
@@ -59,9 +71,6 @@ class _OnfidoWorkflowState extends State<OnfidoWorkflowSample> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Onfido Workflow Sample'),
-      ),
       body: SingleChildScrollView(
         child: Center(
           child: Padding(
@@ -73,6 +82,12 @@ class _OnfidoWorkflowState extends State<OnfidoWorkflowSample> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16.0,
+                  ),
+                ),
+                TextField(
+                  controller: customApiTokenController,
+                  decoration: const InputDecoration(
+                    labelText: 'Custom API Token',
                   ),
                 ),
                 TextField(
@@ -101,6 +116,17 @@ class _OnfidoWorkflowState extends State<OnfidoWorkflowSample> {
                     labelText: 'Workflow Id',
                   ),
                 ),
+                CheckboxListTile(
+                  title: const Text('Use Studio Token'),
+                  value: studioTokenEnabled,
+                  onChanged: (bool? newValue) {
+                    setState(() {
+                      studioTokenEnabled = newValue!;
+                    });
+                  },
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
                 const SizedBox(height: 30.0),
                 const Text(
                   "General Configuration",
@@ -120,7 +146,7 @@ class _OnfidoWorkflowState extends State<OnfidoWorkflowSample> {
                           ElevatedButton(
                             child: Row(
                               children: [
-                                Text(describeEnum(onfidoTheme)),
+                                Text(onfidoTheme.name),
                                 const SizedBox(width: 6),
                                 const Icon(Icons.arrow_drop_down, color: Colors.white),
                               ],
@@ -130,6 +156,17 @@ class _OnfidoWorkflowState extends State<OnfidoWorkflowSample> {
                         ],
                       )
                     ])),
+                CheckboxListTile(
+                  title: const Text('Biometric token callback'),
+                  value: withBiometricTokenCallback,
+                  onChanged: (bool? newValue) {
+                    setState(() {
+                      withBiometricTokenCallback = newValue!;
+                    });
+                  },
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
                 const SizedBox(height: 30.0),
                 const Text("Enterprise Settings",
                     style: TextStyle(
@@ -193,17 +230,28 @@ class _OnfidoWorkflowState extends State<OnfidoWorkflowSample> {
   }
 
   showThemePicker(BuildContext context) {
-    Picker picker = Picker(
-        adapter: PickerDataAdapter<OnfidoTheme>(pickerData: OnfidoTheme.values),
-        selecteds: [OnfidoTheme.values.indexOf(onfidoTheme)],
-        changeToFirst: false,
-        hideHeader: false,
-        onConfirm: (Picker picker, List value) {
-          setState(() {
-            onfidoTheme = picker.getSelectedValues().first!;
-          });
+    showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return CupertinoPicker(
+            magnification: 1.22,
+            squeeze: 1.2,
+            useMagnifier: true,
+            itemExtent: 32.0,
+            // This sets the initial item.
+            scrollController: FixedExtentScrollController(
+              initialItem: OnfidoTheme.values.indexOf(onfidoTheme),
+            ),
+            // This is called when selected item is changed.
+            onSelectedItemChanged: (int selectedItem) {
+              setState(() {
+                onfidoTheme = OnfidoTheme.values[selectedItem];
+              });
+            },
+            children: List<Widget>.generate(OnfidoTheme.values.length, (int index) {
+              return Center(child: Text(OnfidoTheme.values[index].name));
+            }),
+          );
         });
-
-    picker.showModal(context);
   }
 }

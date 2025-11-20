@@ -1,7 +1,6 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_picker/flutter_picker.dart';
 import 'package:onfido_sdk/onfido_sdk.dart';
 import 'package:onfido_sdk_example/components/alert_dialog.dart';
 
@@ -10,14 +9,15 @@ import 'http/onfido_api.dart';
 import 'model/document_type_with_any.dart';
 import 'model/media_callback.dart';
 
-class OnfidoChecksSample extends StatefulWidget {
-  const OnfidoChecksSample({super.key});
+class OnfidoClassic extends StatefulWidget {
+  const OnfidoClassic({super.key});
 
   @override
-  State<OnfidoChecksSample> createState() => _OnfidoChecksSampleState();
+  State<OnfidoClassic> createState() => _OnfidoClassicState();
 }
 
-class _OnfidoChecksSampleState extends State<OnfidoChecksSample> {
+class _OnfidoClassicState extends State<OnfidoClassic> {
+  TextEditingController customApiTokenController = TextEditingController(text: "");
   TextEditingController firstNameController = TextEditingController(text: "first");
   TextEditingController lastNameController = TextEditingController(text: "last");
   TextEditingController emailController = TextEditingController(text: "email@email.com");
@@ -27,7 +27,7 @@ class _OnfidoChecksSampleState extends State<OnfidoChecksSample> {
   bool _welcomeStep = true;
   bool _proofOfAddressStep = false;
 
-  bool _disableNFC = false;
+  NFCOptions _nfcOption = NFCOptions.OPTIONAL;
 
   bool _enableDocCapture = false;
   DocumentTypes _documentType = DocumentTypes.nationalIdentityCard;
@@ -40,11 +40,14 @@ class _OnfidoChecksSampleState extends State<OnfidoChecksSample> {
   bool _confirmationVideoPreview = false;
   bool _manualLivenessCapture = false;
   bool _audio = false;
-  FaceCaptureType? _motionCaptureFallback;
   OnfidoTheme _onfidoTheme = OnfidoTheme.AUTOMATIC;
 
   startOnfido() async {
     try {
+      if (customApiTokenController.text.isNotEmpty) {
+        OnfidoApi.instance.setCustomApiToken(customApiTokenController.text);
+      }
+
       final applicant = await OnfidoApi.instance.createApplicant(
         firstNameController.text,
         lastNameController.text,
@@ -53,14 +56,14 @@ class _OnfidoChecksSampleState extends State<OnfidoChecksSample> {
 
       final applicantId = applicant.id!;
       final sdkToken = await OnfidoApi.instance.createSdkToken(applicantId);
+      final mediaCallbacks = _withMediaCallback ? ExampleMediaCallback() : null;
+      final enterpriseFeatures = _hideOnfidoLogo ? EnterpriseFeatures(hideOnfidoLogo: true) : null;
 
       final Onfido onfido = Onfido(
           sdkToken: sdkToken,
-          mediaCallback: _withMediaCallback ? ExampleMediaCallback() : null,
-          enterpriseFeatures: EnterpriseFeatures(
-            hideOnfidoLogo: _hideOnfidoLogo,
-          ),
-          disableNFC: _disableNFC,
+          mediaCallback: mediaCallbacks,
+          enterpriseFeatures: enterpriseFeatures,
+          nfcOption: _nfcOption,
           onfidoTheme: _onfidoTheme);
 
       final response = await onfido.start(
@@ -100,7 +103,6 @@ class _OnfidoChecksSampleState extends State<OnfidoChecksSample> {
       case FaceCaptureType.motion:
         return FaceCapture.motion(
           withAudio: _audio,
-          withCaptureFallback: configureMotionCaptureFallback(),
         );
     }
   }
@@ -119,23 +121,9 @@ class _OnfidoChecksSampleState extends State<OnfidoChecksSample> {
     );
   }
 
-  FaceCapture? configureMotionCaptureFallback() {
-    switch (_motionCaptureFallback) {
-      case FaceCaptureType.photo:
-        return configurePhotoCapture();
-      case FaceCaptureType.video:
-        return configureVideoCapture();
-      default:
-        return null;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Onfido Checks'),
-      ),
       body: SingleChildScrollView(
         child: Center(
           child: Padding(
@@ -147,6 +135,12 @@ class _OnfidoChecksSampleState extends State<OnfidoChecksSample> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16.0,
+                  ),
+                ),
+                TextField(
+                  controller: customApiTokenController,
+                  decoration: const InputDecoration(
+                    labelText: 'Custom API Token',
                   ),
                 ),
                 TextField(
@@ -185,15 +179,26 @@ class _OnfidoChecksSampleState extends State<OnfidoChecksSample> {
                     });
                   },
                 ),
-                LabeledCheckbox(
-                  label: 'Disable NFC',
-                  value: _disableNFC,
-                  onChanged: (bool newValue) {
-                    setState(() {
-                      _disableNFC = newValue;
-                    });
-                  },
-                ),
+                Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Column(children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text("NFC Options"),
+                          ElevatedButton(
+                            child: Row(
+                              children: [
+                                Text(_nfcOption.name),
+                                const SizedBox(width: 6),
+                                const Icon(Icons.arrow_drop_down, color: Colors.white),
+                              ],
+                            ),
+                            onPressed: () async => {showNFCOptionsPicker(context)},
+                          ),
+                        ],
+                      )
+                    ])),
                 LabeledCheckbox(
                   label: 'Use custom media callbacks',
                   value: _withMediaCallback,
@@ -213,7 +218,7 @@ class _OnfidoChecksSampleState extends State<OnfidoChecksSample> {
                           ElevatedButton(
                             child: Row(
                               children: [
-                                Text(describeEnum(_onfidoTheme)),
+                                Text(_onfidoTheme.name),
                                 const SizedBox(width: 6),
                                 const Icon(Icons.arrow_drop_down, color: Colors.white),
                               ],
@@ -272,7 +277,7 @@ class _OnfidoChecksSampleState extends State<OnfidoChecksSample> {
                                 ElevatedButton(
                                   child: Row(
                                     children: [
-                                      Text(describeEnum(_documentType)),
+                                      Text(_documentType.name),
                                       const SizedBox(width: 6),
                                       const Icon(Icons.arrow_drop_down, color: Colors.white),
                                     ],
@@ -288,7 +293,7 @@ class _OnfidoChecksSampleState extends State<OnfidoChecksSample> {
                                 ElevatedButton(
                                   child: Row(
                                     children: [
-                                      Text(describeEnum(_countryCode)),
+                                      Text(_countryCode.name),
                                       const SizedBox(width: 6),
                                       const Icon(Icons.arrow_drop_down, color: Colors.white),
                                     ],
@@ -326,7 +331,7 @@ class _OnfidoChecksSampleState extends State<OnfidoChecksSample> {
                                 ElevatedButton(
                                   child: Row(
                                     children: [
-                                      Text(describeEnum(_faceCaptureType)),
+                                      Text(_faceCaptureType.name),
                                       const SizedBox(width: 6),
                                       const Icon(Icons.arrow_drop_down, color: Colors.white),
                                     ],
@@ -397,24 +402,6 @@ class _OnfidoChecksSampleState extends State<OnfidoChecksSample> {
                               visible: _faceCaptureType == FaceCaptureType.motion,
                               child: Column(
                                 children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      const Text("Capture Fallback"),
-                                      ElevatedButton(
-                                        child: Row(
-                                          children: [
-                                            Text(_motionCaptureFallback != null
-                                                ? describeEnum(_motionCaptureFallback!)
-                                                : "None"),
-                                            const SizedBox(width: 6),
-                                            const Icon(Icons.arrow_drop_down, color: Colors.white),
-                                          ],
-                                        ),
-                                        onPressed: () async => {showMotionCaptureFallbackPicker(context)},
-                                      ),
-                                    ],
-                                  ),
                                   SwitchListTile(
                                     title: const Text(
                                       "Audio",
@@ -450,86 +437,65 @@ class _OnfidoChecksSampleState extends State<OnfidoChecksSample> {
   }
 
   showFaceCapturePicker(BuildContext context) {
-    Picker picker = Picker(
-        adapter: PickerDataAdapter<FaceCaptureType>(
-          pickerData: FaceCaptureType.values,
-        ),
-        selecteds: [FaceCaptureType.values.indexOf(_faceCaptureType)],
-        changeToFirst: false,
-        hideHeader: false,
-        onConfirm: (Picker picker, List value) {
-          setState(() {
-            _faceCaptureType = picker.getSelectedValues().first!;
-          });
-        });
-
-    picker.showModal(context);
+    _showPickerDialog(
+        FaceCaptureType.values.map((e) => e.name).toList(), FaceCaptureType.values.indexOf(_faceCaptureType),
+        (selectedItem) {
+      _faceCaptureType = FaceCaptureType.values[selectedItem];
+    });
   }
 
   showThemePicker(BuildContext context) {
-    Picker picker = Picker(
-        adapter: PickerDataAdapter<OnfidoTheme>(pickerData: OnfidoTheme.values),
-        selecteds: [OnfidoTheme.values.indexOf(_onfidoTheme)],
-        changeToFirst: false,
-        hideHeader: false,
-        onConfirm: (Picker picker, List value) {
-          setState(() {
-            _onfidoTheme = picker.getSelectedValues().first!;
-          });
-        });
-
-    picker.showModal(context);
+    _showPickerDialog(OnfidoTheme.values.map((e) => e.name).toList(), OnfidoTheme.values.indexOf(_onfidoTheme),
+        (selectedItem) {
+      _onfidoTheme = OnfidoTheme.values[selectedItem];
+    });
   }
 
-  showMotionCaptureFallbackPicker(BuildContext context) {
-    Picker picker = Picker(
-        adapter: PickerDataAdapter<FaceCaptureType>(
-          pickerData: FaceCaptureType.values.where((type) => type != FaceCaptureType.motion).toList(),
-        ),
-        selecteds: [_motionCaptureFallback != null ? FaceCaptureType.values.indexOf(_motionCaptureFallback!) : 0],
-        changeToFirst: false,
-        hideHeader: false,
-        onConfirm: (Picker picker, List value) {
-          setState(() {
-            _motionCaptureFallback = picker.getSelectedValues().first!;
-          });
-        });
-
-    picker.showModal(context);
+  showNFCOptionsPicker(BuildContext context) {
+    _showPickerDialog(NFCOptions.values.map((e) => e.name).toList(), NFCOptions.values.indexOf(_nfcOption),
+        (selectedItem) {
+      _nfcOption = NFCOptions.values[selectedItem];
+    });
   }
 
   showDocumentPicker(BuildContext context) {
-    Picker picker = Picker(
-        adapter: PickerDataAdapter<DocumentTypes>(
-          pickerData: DocumentTypes.values,
-        ),
-        selecteds: [DocumentTypes.values.indexOf(_documentType)],
-        changeToFirst: false,
-        hideHeader: false,
-        onConfirm: (Picker picker, List value) {
-          setState(() {
-            _documentType = picker.getSelectedValues().first!;
-          });
-        });
-
-    picker.showModal(context);
+    _showPickerDialog(DocumentTypes.values.map((e) => e.name).toList(), DocumentTypes.values.indexOf(_documentType),
+        (selectedItem) {
+      _documentType = DocumentTypes.values[selectedItem];
+    });
   }
 
   showCountryPicker(BuildContext context) {
-    Picker picker = Picker(
-        adapter: PickerDataAdapter<CountryCode>(
-          pickerData: CountryCode.values,
-        ),
-        selecteds: [CountryCode.values.indexOf(_countryCode)],
-        changeToFirst: false,
-        hideHeader: false,
-        onConfirm: (Picker picker, List value) {
-          setState(() {
-            _countryCode = picker.getSelectedValues().first!;
-          });
-        });
+    _showPickerDialog(CountryCode.values.map((e) => e.name).toList(), CountryCode.values.indexOf(_countryCode),
+        (selectedItem) {
+      _countryCode = CountryCode.values[selectedItem];
+    });
+  }
 
-    picker.showModal(context);
+  _showPickerDialog(List<String> itemList, int initialItem, Function(int) itemSelected) {
+    showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return CupertinoPicker(
+            magnification: 1.22,
+            squeeze: 1.2,
+            useMagnifier: true,
+            itemExtent: 32.0,
+            // This sets the initial item.
+            scrollController: FixedExtentScrollController(
+              initialItem: initialItem,
+            ),
+            // This is called when selected item is changed.
+            onSelectedItemChanged: (int selectedItem) {
+              setState(() {
+                itemSelected(selectedItem);
+              });
+            },
+            children: List<Widget>.generate(itemList.length, (int index) {
+              return Center(child: Text(itemList[index]));
+            }),
+          );
+        });
   }
 
   _showDialog(String title, String message) {

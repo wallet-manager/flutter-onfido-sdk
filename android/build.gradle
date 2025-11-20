@@ -1,21 +1,12 @@
-group 'com.onfido.sdk.flutter'
-version '1.0-SNAPSHOT'
-
-def onfidoSdkVersion = '19.6.+'
-
-buildscript {
-    ext.kotlin_version = '1.6.10'
-
-    repositories {
-        google()
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath 'com.android.tools.build:gradle:7.1.3'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
+plugins {
+    id("com.android.library")
+    id("kotlin-android")
 }
+
+version '1.0'
+
+def onfidoSdkVersion = '23.2.+'
+
 
 rootProject.allprojects {
     repositories {
@@ -24,19 +15,16 @@ rootProject.allprojects {
     }
 }
 
-apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
-
 android {
-    compileSdkVersion 32
-
+    compileSdkVersion 34
+    namespace 'com.onfido.sdk.flutter'
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = JavaVersion.VERSION_11.toString()
     }
 
     sourceSets {
@@ -49,7 +37,6 @@ android {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation "com.onfido.sdk.capture:onfido-capture-sdk:$onfidoSdkVersion"
     implementation "com.onfido.sdk:onfido-workflow:$onfidoSdkVersion"
 }

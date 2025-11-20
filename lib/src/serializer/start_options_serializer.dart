@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:onfido_sdk/onfido_sdk.dart';
 
 class StartOptionsSerializer {
@@ -10,6 +9,7 @@ class StartOptionsSerializer {
     EnterpriseFeatures? enterpriseFeatures,
     String? iosLocalizationFileName,
     bool? disableNFC,
+    NFCOptions? nfcOption,
     OnfidoTheme? onfidoTheme,
     String? locale,
   }) {
@@ -18,11 +18,11 @@ class StartOptionsSerializer {
       'flowSteps': flowSteps.toJson(),
       'iosAppearance': iosAppearance?.toJson(),
       'iosLocalizationFileName': iosLocalizationFileName,
-      'disableNFC': disableNFC,
+      'nfcOption': nfcOption?.name,
       'shouldUseMediaCallback': shouldUseMediaCallback,
       'enterpriseFeatures': enterpriseFeatures?.toJson(),
-      'onfidoTheme': onfidoTheme == null ? null : describeEnum(onfidoTheme),
       'locale': locale ?? 'en',
+      'onfidoTheme': onfidoTheme?.name
     };
   }
 }

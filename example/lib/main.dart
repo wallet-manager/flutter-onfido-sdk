@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:onfido_sdk_example/checks.dart';
-import 'package:onfido_sdk_example/workflow.dart';
+import 'package:onfido_sdk_example/classic.dart';
+import 'package:onfido_sdk_example/devtools.dart';
+import 'package:onfido_sdk_example/studio.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   await dotenv.load();
@@ -27,33 +29,35 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Onfido Example'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            MaterialButton(
-              child: const Text("Onfido Checks Sample"),
-              onPressed: () => {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const OnfidoChecksSample()),
-                )
-              },
+    return MaterialApp(
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: [
+        Locale('en'), // English
+        Locale('de'), // German
+        Locale('ru'), // Russian
+        Locale('es'), // Spanish
+        Locale('ar'), // Arabic
+      ],
+      home: DefaultTabController(
+        length: 3,
+        child: Scaffold(
+          appBar: AppBar(
+            bottom: const TabBar(
+              tabs: [
+                Tab(text: "Classic"),
+                Tab(text: "Studio"),
+                Tab(text: "DevTools"),
+              ],
             ),
-            MaterialButton(
-              child: const Text("Onfido Workflow Sample"),
-              onPressed: () => {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const OnfidoWorkflowSample()),
-                )
-              },
-            ),
-          ],
+            title: const Text('Flutter SDK'),
+          ),
+          body: const TabBarView(
+            children: [OnfidoClassic(), OnfidoStudio(), Devtools()],
+          ),
         ),
       ),
     );

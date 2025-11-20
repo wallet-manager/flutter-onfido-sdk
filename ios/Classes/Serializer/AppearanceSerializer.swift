@@ -13,10 +13,6 @@ extension Appearance {
         fontBold = dictionary["fontBold"] as? String
         fontRegular = dictionary["fontRegular"] as? String
 
-        if let supportDarkMode = dictionary["supportDarkMode"] as? Bool {
-            self.supportDarkMode = supportDarkMode
-        }
-
         if
             let backgroundColor = dictionary["backgroundColor"] as? NSDictionary,
             let lightColor = extractColor("light", from: backgroundColor),
@@ -49,10 +45,6 @@ extension Appearance {
             self.primaryTitleColor = primaryTitleColor
         }
 
-        if let bubbleErrorBackgroundColor = extractColor("bubbleErrorBackgroundColor", from: dictionary) {
-            self.bubbleErrorBackgroundColor = bubbleErrorBackgroundColor
-        }
-
         return self
     }
 }
@@ -62,7 +54,6 @@ private func extractColor(_ colorName: String, from dictionary: NSDictionary) ->
     return UIColor(unsafeHex: color)
 }
 
-@available(iOS 12.0, *)
 extension UIUserInterfaceStyle {
     init(_ stringRepresentation: String) {
         switch stringRepresentation {

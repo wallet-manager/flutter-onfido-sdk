@@ -27,7 +27,8 @@ struct StartStudioBridge: BaseBridge {
                     result(serialized)
 
                 case .error(let error):
-                    result(FlutterError(code: "error", message: error.localizedDescription, details: nil))
+                    let errorDetails = StartBridge.extractDetails(from: error)
+                    result(FlutterError(code: "error", message: error.localizedDescription, details: errorDetails))
 
                 case .cancel:
                     result(FlutterError(code: "exit", message: "User canceled the flow", details: nil))
@@ -37,7 +38,12 @@ struct StartStudioBridge: BaseBridge {
                 }
             })
 
-            getFlutterViewController()?.present(try onfidoFlow.run(), animated: true)
+            guard let viewController = getFlutterViewController() else {
+                assertionFailure("There is no viewController to present Onfido flow")
+                return
+            }
+
+            try onfidoFlow.run(from: viewController, presentationStyle: .fullScreen)
         } catch {
             result(FlutterError(code: "configuration", message: error.localizedDescription, details: "\(error)"))
         }

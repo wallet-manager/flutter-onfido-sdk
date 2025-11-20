@@ -21,15 +21,13 @@ const startMockRequestBody = {
     'secondaryTitleColor': '#0a141e0a',
     'primaryBackgroundPressedColor': null,
     'secondaryBackgroundPressedColor': null,
-    'bubbleErrorBackgroundColor': null,
     'buttonCornerRadius': null,
     'fontRegular': 'avenir',
     'fontBold': 'avenir-heavy',
-    'supportDarkMode': false,
     'backgroundColor': {'dark': '#1e140a0a', 'light': '#0a141e0a'}
   },
   'enterpriseFeatures': {'hideOnfidoLogo': true, 'cobrandingText': 'text', 'disableMobileSDKAnalytics': false},
-  'disableNFC': false,
+  'nfcOption': "OPTIONAL",
   "onfidoTheme": "LIGHT"
 };
 
@@ -38,17 +36,16 @@ const startStudioMockRequestBody = {
   'workflowRunId': 'workflowRunId',
   'iosLocalizationFileName': 'iosFileName',
   'shouldUseMediaCallback': false,
+  'shouldUseBiometricTokenCallback': false,
   'iosAppearance': {
     'primaryColor': '#0012c4b4',
     'primaryTitleColor': null,
     'secondaryTitleColor': '#0a141e0a',
     'primaryBackgroundPressedColor': null,
     'secondaryBackgroundPressedColor': null,
-    'bubbleErrorBackgroundColor': null,
     'buttonCornerRadius': null,
     'fontRegular': 'avenir',
     'fontBold': 'avenir-heavy',
-    'supportDarkMode': false,
     'backgroundColor': {'dark': '#1e140a0a', 'light': '#0a141e0a'}
   },
   "enterpriseFeatures": null,
@@ -64,7 +61,10 @@ const startMockResponse = [
       'nfcMediaId': 'nfcMediaUuid'
     },
     'face': {'id': '123', 'variant': 1},
-    'proofOfAddress': {'id': '123', 'type': 'type', 'issuingCountry': 'country'}
+    'proofOfAddress': {
+      'type': 'type',
+      'front': {'id': '123', 'type': 'type'}
+    }
   }
 ];
 
@@ -78,11 +78,8 @@ final mockedResultObject = OnfidoResult(
     id: "123",
     variant: FaceCaptureType.video,
   ),
-  proofOfAddress: ProofOfAddressResult(
-    id: "123",
-    type: "type",
-    issuingCountry: "country",
-  ),
+  proofOfAddress:
+      ProofOfAddressResult(type: "type", front: ProofOfAddressDocumentSide(id: "123", type: "type"), back: null),
 );
 
 final mockedMediaResultObject = OnfidoMediaResult(
