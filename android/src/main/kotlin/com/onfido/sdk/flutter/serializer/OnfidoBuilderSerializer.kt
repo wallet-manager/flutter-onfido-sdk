@@ -8,31 +8,28 @@ import com.onfido.android.sdk.capture.ui.camera.face.stepbuilder.MotionCaptureSt
 import com.onfido.android.sdk.capture.ui.options.FlowStep
 import com.onfido.android.sdk.capture.ui.options.stepbuilder.DocumentCaptureStepBuilder
 import com.onfido.sdk.flutter.helpers.CustomMediaCallback
-import io.flutter.embedding.engine.plugins.FlutterPlugin
 import java.util.Locale
-import com.onfido.android.sdk.capture.model.NFCOptions
 
-internal fun Any?.deserializeOnfidoBuilder(
-    context: Context
-): OnfidoConfig.Builder {
+internal fun Any?.deserializeOnfidoBuilder(context: Context): OnfidoConfig.Builder {
     if (this !is Map<*, *>) throw Exception("Invalid arguments for start method")
 
     val builder = OnfidoConfig.builder(context)
 
     (this["locale"] as? String)?.let {
-        if(it == "zh-Hant") {
+        if (it == "zh-Hant") {
             builder.withLocale(Locale.TRADITIONAL_CHINESE)
+        } else if (it == "zh-Hans") {
+            builder.withLocale(Locale.SIMPLIFIED_CHINESE)
         } else {
             builder.withLocale(Locale(it))
         }
     }
 
-    (this["sdkToken"] as? String)?.let {
-        builder.withSDKToken(it)
-    }
+    (this["sdkToken"] as? String)?.let { builder.withSDKToken(it) }
 
-    val flowSteps = this["flowSteps"] as? Map<*, *>
-        ?: throw Exception("Invalid arguments for start method (flow steps)")
+    val flowSteps =
+            this["flowSteps"] as? Map<*, *>
+                    ?: throw Exception("Invalid arguments for start method (flow steps)")
 
     val steps = mutableListOf<FlowStep>()
     if (flowSteps["welcome"] == true) {
@@ -52,33 +49,32 @@ internal fun Any?.deserializeOnfidoBuilder(
 
         val documentStepBuilder = DocumentCaptureStepBuilder
         val documentStep: FlowStep =
-            when (docType) {
-                "passport" -> {
-                    documentStepBuilder.forPassport().build()
+                when (docType) {
+                    "passport" -> {
+                        documentStepBuilder.forPassport().build()
+                    }
+                    "drivingLicence" -> {
+                        documentStepBuilder.forDrivingLicence().withCountry(countryCode).build()
+                    }
+                    "nationalIdentityCard" -> {
+                        documentStepBuilder.forNationalIdentity().withCountry(countryCode).build()
+                    }
+                    "residencePermit" -> {
+                        documentStepBuilder.forResidencePermit().withCountry(countryCode).build()
+                    }
+                    "visa" -> {
+                        documentStepBuilder.forVisa().withCountry(countryCode).build()
+                    }
+                    "workPermit" -> {
+                        documentStepBuilder.forWorkPermit().withCountry(countryCode).build()
+                    }
+                    "generic" -> {
+                        documentStepBuilder.forGenericDocument().withCountry(countryCode).build()
+                    }
+                    else -> throw Exception("Unsupported document type")
                 }
-                "drivingLicence" -> {
-                    documentStepBuilder.forDrivingLicence().withCountry(countryCode).build()
-                }
-                "nationalIdentityCard" -> {
-                    documentStepBuilder.forNationalIdentity().withCountry(countryCode).build()
-                }
-                "residencePermit" -> {
-                    documentStepBuilder.forResidencePermit().withCountry(countryCode).build()
-                }
-                "visa" -> {
-                    documentStepBuilder.forVisa().withCountry(countryCode).build()
-                }
-                "workPermit" -> {
-                    documentStepBuilder.forWorkPermit().withCountry(countryCode).build()
-                }
-                "generic" -> {
-                    documentStepBuilder.forGenericDocument().withCountry(countryCode).build()
-                }
-                else -> throw Exception("Unsupported document type")
-            }
 
         steps.add(documentStep)
-
     } else if (captureDocument != null) {
         steps.add(FlowStep.CAPTURE_DOCUMENT)
     }
@@ -86,12 +82,13 @@ internal fun Any?.deserializeOnfidoBuilder(
     (flowSteps["faceCapture"] as? Map<*, *>)?.let { faceCapture ->
         (faceCapture["type"] as? String)?.let { type ->
             val faceStepBuilder = FaceCaptureStepBuilder
-            val faceStep = when (type) {
-                "photo" -> getPhotoCaptureStepBuilder(faceStepBuilder, faceCapture)
-                "video" -> getVideoCaptureStepBuilder(faceStepBuilder, faceCapture)
-                "motion" -> getMotionCaptureStepBuilder(faceStepBuilder, faceCapture)
-                else -> throw Exception("Unsupported face capture type")
-            }
+            val faceStep =
+                    when (type) {
+                        "photo" -> getPhotoCaptureStepBuilder(faceStepBuilder, faceCapture)
+                        "video" -> getVideoCaptureStepBuilder(faceStepBuilder, faceCapture)
+                        "motion" -> getMotionCaptureStepBuilder(faceStepBuilder, faceCapture)
+                        else -> throw Exception("Unsupported face capture type")
+                    }
             steps.add(faceStep.build())
         }
     }
@@ -120,42 +117,36 @@ internal fun Any?.deserializeOnfidoBuilder(
 }
 
 private fun getPhotoCaptureStepBuilder(
-    faceStepBuilder: FaceCaptureStepBuilder,
-    faceCapture: Map<*, *>
-) = faceStepBuilder.forPhoto().apply {
-    (faceCapture["withIntroScreen"] as? Boolean)?.let {
-        this.withIntro(it)
-    }
-}
+        faceStepBuilder: FaceCaptureStepBuilder,
+        faceCapture: Map<*, *>
+) =
+        faceStepBuilder.forPhoto().apply {
+            (faceCapture["withIntroScreen"] as? Boolean)?.let { this.withIntro(it) }
+        }
 
 private fun getVideoCaptureStepBuilder(
-    faceStepBuilder: FaceCaptureStepBuilder,
-    faceCapture: Map<*, *>
-) = faceStepBuilder.forVideo().apply {
-    (faceCapture["withIntroVideo"] as? Boolean)?.let {
-        this.withIntro(it)
-    }
-    (faceCapture["withConfirmationVideoPreview"] as? Boolean)?.let {
-        this.withConfirmationVideoPreview(it)
-    }
-}
+        faceStepBuilder: FaceCaptureStepBuilder,
+        faceCapture: Map<*, *>
+) =
+        faceStepBuilder.forVideo().apply {
+            (faceCapture["withIntroVideo"] as? Boolean)?.let { this.withIntro(it) }
+            (faceCapture["withConfirmationVideoPreview"] as? Boolean)?.let {
+                this.withConfirmationVideoPreview(it)
+            }
+        }
 
 private fun getMotionCaptureStepBuilder(
-    faceStepBuilder: FaceCaptureStepBuilder,
-    faceCapture: Map<*, *>
+        faceStepBuilder: FaceCaptureStepBuilder,
+        faceCapture: Map<*, *>
 ): MotionCaptureStepBuilder {
     val motionCaptureStepBuilder = faceStepBuilder.forMotion()
 
-    (faceCapture["withAudio"] as? Boolean)?.let {
-        motionCaptureStepBuilder.withAudio(it)
-    }
+    (faceCapture["withAudio"] as? Boolean)?.let { motionCaptureStepBuilder.withAudio(it) }
 
     return motionCaptureStepBuilder
 }
 
-fun EnterpriseFeatures.Companion.buildFromMap(
-    map: Map<*, *>
-): EnterpriseFeatures {
+fun EnterpriseFeatures.Companion.buildFromMap(map: Map<*, *>): EnterpriseFeatures {
     val builder = EnterpriseFeatures.Builder()
 
     if (map["hideOnfidoLogo"] as? Boolean == true) {
@@ -166,9 +157,7 @@ fun EnterpriseFeatures.Companion.buildFromMap(
         builder.disableMobileSdkAnalytics()
     }
 
-    (map["cobrandingText"] as? String)?.let {
-        builder.withCobrandingText(it)
-    }
+    (map["cobrandingText"] as? String)?.let { builder.withCobrandingText(it) }
 
     return builder.build()
 }
